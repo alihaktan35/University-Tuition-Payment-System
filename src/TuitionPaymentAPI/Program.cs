@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using TuitionPaymentAPI.Data;
 using TuitionPaymentAPI.Middleware;
+using TuitionPaymentAPI.Models;
 using TuitionPaymentAPI.Services;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,9 +48,41 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Configure Swagger/OpenAPI
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Configure OpenAPI with JWT Bearer authentication
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Components ??= new();
+        document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+
+        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "Enter your JWT token in the format: Bearer {your token}"
+        };
+
+        // Add security requirement globally
+        document.SecurityRequirements = new List<OpenApiSecurityRequirement>
+        {
+            new()
+            {
+                [new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                }] = Array.Empty<string>()
+            }
+        };
+
+        return Task.CompletedTask;
+    });
+});
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -65,11 +100,12 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    app.MapOpenApi();
+    app.MapScalarApiReference(options =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tuition Payment API V1");
-        c.RoutePrefix = string.Empty; // Swagger at root
+        options.WithTitle("University Tuition Payment API");
+        options.WithTheme(ScalarTheme.Purple);
+        options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
     });
 }
 
@@ -96,6 +132,28 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<TuitionDbContext>();
         context.Database.Migrate();
+
+        // Seed users programmatically if they don't exist
+        if (!context.Users.Any())
+        {
+            context.Users.AddRange(
+                new User
+                {
+                    Username = "admin",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+                    Role = "Admin",
+                    CreatedAt = DateTime.UtcNow
+                },
+                new User
+                {
+                    Username = "bankapi",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Bank123!"),
+                    Role = "BankingSystem",
+                    CreatedAt = DateTime.UtcNow
+                }
+            );
+            context.SaveChanges();
+        }
     }
     catch (Exception ex)
     {

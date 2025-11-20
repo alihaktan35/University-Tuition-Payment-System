@@ -44,8 +44,8 @@ The system supports three types of clients:
 ## 🔗 Links
 
 - **GitHub Repository**: [University-Tuition-Payment-System](https://github.com/alihaktan35/University-Tuition-Payment-System)
-- **Deployed Swagger UI**: `Coming soon - Will be deployed to Azure`
-- **API Gateway URL**: `Coming soon - Azure deployment`
+- **Local API Documentation**: http://localhost:5000/scalar/v1 (when running locally)
+- **Deployed API**: `Coming soon - Will be deployed to Azure`
 
 ---
 
@@ -113,7 +113,7 @@ The system supports three types of clients:
 | **Authentication** | JWT (JSON Web Tokens) | - |
 | **Password Hashing** | BCrypt.Net-Next | Latest |
 | **CSV Processing** | CsvHelper | Latest |
-| **API Documentation** | Swagger/OpenAPI | 10.0.1 |
+| **API Documentation** | Scalar API Reference | 2.11.0 |
 
 ---
 
@@ -132,7 +132,7 @@ The system supports three types of clients:
 - ✅ Comprehensive request/response logging
 - ✅ Rate limiting (3 requests/day for mobile endpoint)
 - ✅ Automatic database migrations and seeding
-- ✅ Swagger UI for API testing
+- ✅ Modern Scalar UI for API testing
 - ✅ CORS enabled
 - ✅ Error handling with standardized responses
 
@@ -161,6 +161,13 @@ Authenticate and get JWT token
   "username": "admin",
   "role": "Admin"
 }
+```
+
+**Example Usage**:
+```bash
+curl -X POST http://localhost:5000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"Admin123!"}'
 ```
 
 ---
@@ -330,7 +337,7 @@ dotnet run
 ### Access Points
 
 - **API Gateway (Main Entry)**: http://localhost:5000
-- **Swagger UI**: http://localhost:5000/swagger
+- **API Documentation (Scalar UI)**: http://localhost:5000/scalar/v1
 - **Direct API Access**: http://localhost:5001 (for testing only)
 
 ---
@@ -448,6 +455,9 @@ ConnectionStrings__DefaultConnection=<azure-sql-connection-string>
 ### Issue 5: API Gateway Logging Requirements
 **Solution**: Implemented custom middleware in Gateway that logs all request/response details including headers, status codes, latency, and body sizes.
 
+### Issue 6: Entity Framework Model Changes with DateTime.UtcNow
+**Solution**: Replaced `DateTime.UtcNow` in seed data with fixed DateTime values. Moved User seeding from DbContext to Program.cs to handle BCrypt's non-deterministic hashing.
+
 ---
 
 ## 📁 Project Structure
@@ -484,7 +494,7 @@ University-Tuition-Payment-System/
 - ✅ Pagination for unpaid list
 - ✅ API Gateway with YARP
 - ✅ Comprehensive logging
-- ✅ Swagger documentation
+- ✅ Modern API documentation with Scalar
 - ✅ Database seeding with test data
 - ✅ Error handling with standard responses
 - ✅ Entity Framework migrations
@@ -513,4 +523,4 @@ University-Tuition-Payment-System/
 
 ---
 
-**Built with ASP.NET Core 9.0 | Deployed on Azure | Documented with Swagger**
+**Built with ASP.NET Core 9.0 | Documented with Scalar API Reference | Ready for Azure**

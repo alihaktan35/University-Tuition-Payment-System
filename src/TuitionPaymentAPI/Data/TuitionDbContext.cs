@@ -58,42 +58,28 @@ public class TuitionDbContext : DbContext
 
     private void SeedData(ModelBuilder modelBuilder)
     {
+        // Use fixed datetime for consistent seed data across migrations
+        var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         // Seed Students
         modelBuilder.Entity<Student>().HasData(
-            new Student { StudentId = 1, StudentNo = "20210001", Name = "Ahmet Yılmaz", Email = "ahmet.yilmaz@university.edu", CreatedAt = DateTime.UtcNow },
-            new Student { StudentId = 2, StudentNo = "20210002", Name = "Ayşe Demir", Email = "ayse.demir@university.edu", CreatedAt = DateTime.UtcNow },
-            new Student { StudentId = 3, StudentNo = "20210003", Name = "Mehmet Kaya", Email = "mehmet.kaya@university.edu", CreatedAt = DateTime.UtcNow },
-            new Student { StudentId = 4, StudentNo = "20210004", Name = "Fatma Öz", Email = "fatma.oz@university.edu", CreatedAt = DateTime.UtcNow },
-            new Student { StudentId = 5, StudentNo = "20210005", Name = "Ali Şahin", Email = "ali.sahin@university.edu", CreatedAt = DateTime.UtcNow }
+            new Student { StudentId = 1, StudentNo = "20210001", Name = "Ahmet Yılmaz", Email = "ahmet.yilmaz@university.edu", CreatedAt = seedDate },
+            new Student { StudentId = 2, StudentNo = "20210002", Name = "Ayşe Demir", Email = "ayse.demir@university.edu", CreatedAt = seedDate },
+            new Student { StudentId = 3, StudentNo = "20210003", Name = "Mehmet Kaya", Email = "mehmet.kaya@university.edu", CreatedAt = seedDate },
+            new Student { StudentId = 4, StudentNo = "20210004", Name = "Fatma Öz", Email = "fatma.oz@university.edu", CreatedAt = seedDate },
+            new Student { StudentId = 5, StudentNo = "20210005", Name = "Ali Şahin", Email = "ali.sahin@university.edu", CreatedAt = seedDate }
         );
 
         // Seed Tuitions
         modelBuilder.Entity<Tuition>().HasData(
-            new Tuition { TuitionId = 1, StudentId = 1, Term = "2024-Fall", TotalAmount = 50000, Balance = 50000, PaidAmount = 0, Status = "UNPAID", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Tuition { TuitionId = 2, StudentId = 2, Term = "2024-Fall", TotalAmount = 50000, Balance = 25000, PaidAmount = 25000, Status = "PARTIAL", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Tuition { TuitionId = 3, StudentId = 3, Term = "2024-Fall", TotalAmount = 50000, Balance = 0, PaidAmount = 50000, Status = "PAID", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Tuition { TuitionId = 4, StudentId = 4, Term = "2024-Fall", TotalAmount = 50000, Balance = 50000, PaidAmount = 0, Status = "UNPAID", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+            new Tuition { TuitionId = 1, StudentId = 1, Term = "2024-Fall", TotalAmount = 50000, Balance = 50000, PaidAmount = 0, Status = "UNPAID", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Tuition { TuitionId = 2, StudentId = 2, Term = "2024-Fall", TotalAmount = 50000, Balance = 25000, PaidAmount = 25000, Status = "PARTIAL", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Tuition { TuitionId = 3, StudentId = 3, Term = "2024-Fall", TotalAmount = 50000, Balance = 0, PaidAmount = 50000, Status = "PAID", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Tuition { TuitionId = 4, StudentId = 4, Term = "2024-Fall", TotalAmount = 50000, Balance = 50000, PaidAmount = 0, Status = "UNPAID", CreatedAt = seedDate, UpdatedAt = seedDate }
         );
 
-        // Seed Users (password: Admin123! and Bank123!)
-        // Using BCrypt for password hashing
-        modelBuilder.Entity<User>().HasData(
-            new User
-            {
-                UserId = 1,
-                Username = "admin",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
-                Role = "Admin",
-                CreatedAt = DateTime.UtcNow
-            },
-            new User
-            {
-                UserId = 2,
-                Username = "bankapi",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Bank123!"),
-                Role = "BankingSystem",
-                CreatedAt = DateTime.UtcNow
-            }
-        );
+        // Note: User seeding removed due to BCrypt non-deterministic hashing
+        // Users will be created programmatically on first application start
+        // See Program.cs for user initialization logic
     }
 }

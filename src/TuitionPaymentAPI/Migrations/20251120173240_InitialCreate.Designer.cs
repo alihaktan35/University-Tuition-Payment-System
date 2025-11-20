@@ -11,7 +11,7 @@ using TuitionPaymentAPI.Data;
 namespace TuitionPaymentAPI.Migrations
 {
     [DbContext(typeof(TuitionDbContext))]
-    [Migration("20251120170357_InitialCreate")]
+    [Migration("20251120173240_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -119,7 +119,7 @@ namespace TuitionPaymentAPI.Migrations
                         new
                         {
                             StudentId = 1,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(2690),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "ahmet.yilmaz@university.edu",
                             Name = "Ahmet Yılmaz",
                             StudentNo = "20210001"
@@ -127,7 +127,7 @@ namespace TuitionPaymentAPI.Migrations
                         new
                         {
                             StudentId = 2,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(2780),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "ayse.demir@university.edu",
                             Name = "Ayşe Demir",
                             StudentNo = "20210002"
@@ -135,7 +135,7 @@ namespace TuitionPaymentAPI.Migrations
                         new
                         {
                             StudentId = 3,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(2780),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "mehmet.kaya@university.edu",
                             Name = "Mehmet Kaya",
                             StudentNo = "20210003"
@@ -143,7 +143,7 @@ namespace TuitionPaymentAPI.Migrations
                         new
                         {
                             StudentId = 4,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(2780),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "fatma.oz@university.edu",
                             Name = "Fatma Öz",
                             StudentNo = "20210004"
@@ -151,7 +151,7 @@ namespace TuitionPaymentAPI.Migrations
                         new
                         {
                             StudentId = 5,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(2780),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "ali.sahin@university.edu",
                             Name = "Ali Şahin",
                             StudentNo = "20210005"
@@ -203,49 +203,49 @@ namespace TuitionPaymentAPI.Migrations
                         {
                             TuitionId = 1,
                             Balance = 50000m,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5840),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             PaidAmount = 0m,
                             Status = "UNPAID",
                             StudentId = 1,
                             Term = "2024-Fall",
                             TotalAmount = 50000m,
-                            UpdatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5910)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             TuitionId = 2,
                             Balance = 25000m,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             PaidAmount = 25000m,
                             Status = "PARTIAL",
                             StudentId = 2,
                             Term = "2024-Fall",
                             TotalAmount = 50000m,
-                            UpdatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             TuitionId = 3,
                             Balance = 0m,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             PaidAmount = 50000m,
                             Status = "PAID",
                             StudentId = 3,
                             Term = "2024-Fall",
                             TotalAmount = 50000m,
-                            UpdatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             TuitionId = 4,
                             Balance = 50000m,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             PaidAmount = 0m,
                             Status = "UNPAID",
                             StudentId = 4,
                             Term = "2024-Fall",
                             TotalAmount = 50000m,
-                            UpdatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990)
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
                 });
 
@@ -279,24 +279,6 @@ namespace TuitionPaymentAPI.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = 1,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 269, DateTimeKind.Utc).AddTicks(5700),
-                            PasswordHash = "$2a$11$Y1qZCLkc6XPN3kKbXaAu4ueM9EadGNjCr9jflQzVkCHID/jAGrTTK",
-                            Role = "Admin",
-                            Username = "admin"
-                        },
-                        new
-                        {
-                            UserId = 2,
-                            CreatedAt = new DateTime(2025, 11, 20, 17, 3, 57, 371, DateTimeKind.Utc).AddTicks(5230),
-                            PasswordHash = "$2a$11$TsvldFLTlImNfuwTNctioubOVaRsEhuywtHm6OHmNg8dGenHnkXhK",
-                            Role = "BankingSystem",
-                            Username = "bankapi"
-                        });
                 });
 
             modelBuilder.Entity("TuitionPaymentAPI.Models.Payment", b =>

@@ -116,20 +116,11 @@ namespace TuitionPaymentAPI.Migrations
                 columns: new[] { "StudentId", "CreatedAt", "Email", "Name", "StudentNo" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(2690), "ahmet.yilmaz@university.edu", "Ahmet Yılmaz", "20210001" },
-                    { 2, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(2780), "ayse.demir@university.edu", "Ayşe Demir", "20210002" },
-                    { 3, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(2780), "mehmet.kaya@university.edu", "Mehmet Kaya", "20210003" },
-                    { 4, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(2780), "fatma.oz@university.edu", "Fatma Öz", "20210004" },
-                    { 5, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(2780), "ali.sahin@university.edu", "Ali Şahin", "20210005" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Users",
-                columns: new[] { "UserId", "CreatedAt", "PasswordHash", "Role", "Username" },
-                values: new object[,]
-                {
-                    { 1, new DateTime(2025, 11, 20, 17, 3, 57, 269, DateTimeKind.Utc).AddTicks(5700), "$2a$11$Y1qZCLkc6XPN3kKbXaAu4ueM9EadGNjCr9jflQzVkCHID/jAGrTTK", "Admin", "admin" },
-                    { 2, new DateTime(2025, 11, 20, 17, 3, 57, 371, DateTimeKind.Utc).AddTicks(5230), "$2a$11$TsvldFLTlImNfuwTNctioubOVaRsEhuywtHm6OHmNg8dGenHnkXhK", "BankingSystem", "bankapi" }
+                    { 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "ahmet.yilmaz@university.edu", "Ahmet Yılmaz", "20210001" },
+                    { 2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "ayse.demir@university.edu", "Ayşe Demir", "20210002" },
+                    { 3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "mehmet.kaya@university.edu", "Mehmet Kaya", "20210003" },
+                    { 4, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "fatma.oz@university.edu", "Fatma Öz", "20210004" },
+                    { 5, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "ali.sahin@university.edu", "Ali Şahin", "20210005" }
                 });
 
             migrationBuilder.InsertData(
@@ -137,10 +128,10 @@ namespace TuitionPaymentAPI.Migrations
                 columns: new[] { "TuitionId", "Balance", "CreatedAt", "PaidAmount", "Status", "StudentId", "Term", "TotalAmount", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1, 50000m, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5840), 0m, "UNPAID", 1, "2024-Fall", 50000m, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5910) },
-                    { 2, 25000m, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990), 25000m, "PARTIAL", 2, "2024-Fall", 50000m, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990) },
-                    { 3, 0m, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990), 50000m, "PAID", 3, "2024-Fall", 50000m, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990) },
-                    { 4, 50000m, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990), 0m, "UNPAID", 4, "2024-Fall", 50000m, new DateTime(2025, 11, 20, 17, 3, 57, 94, DateTimeKind.Utc).AddTicks(5990) }
+                    { 1, 50000m, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0m, "UNPAID", 1, "2024-Fall", 50000m, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc) },
+                    { 2, 25000m, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 25000m, "PARTIAL", 2, "2024-Fall", 50000m, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc) },
+                    { 3, 0m, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 50000m, "PAID", 3, "2024-Fall", 50000m, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc) },
+                    { 4, 50000m, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0m, "UNPAID", 4, "2024-Fall", 50000m, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc) }
                 });
 
             migrationBuilder.CreateIndex(
