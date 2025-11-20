@@ -3,7 +3,9 @@
 A comprehensive REST API system for managing university tuition payments with an API Gateway, rate limiting, JWT authentication, and full CRUD operations.
 
 **Course**: SE 4458 - Büyük Ölçekli Sistemler İçin Sistem Mimarisi
+
 **Project Type**: Midterm Project
+
 **Academic Year**: 2025-2026
 
 ---
