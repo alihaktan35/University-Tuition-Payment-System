@@ -416,3 +416,31 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# ========================================
+# Additional Project-Specific Ignores
+# ========================================
+
+# macOS system files
+.DS_Store
+._*
+
+# Azure publish profiles (sensitive data)
+**/PublishProfiles/
+*.PublishSettings
+
+# Environment-specific settings (may contain secrets)
+appsettings.Development.json
+appsettings.Production.json
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# CSV test files
+**/uploads/*.csv
+**/test-data/*.csv
+
+# Rider IDE
+.idea/
