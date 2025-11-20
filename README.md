@@ -185,8 +185,17 @@ Query tuition for a student
 ```json
 {
   "tuitionTotal": 50000.00,
-  "balance": 25000.00
+  "balance": 50000.00
 }
+```
+
+**Example Usage**:
+```bash
+# Query student 20210001's tuition
+curl http://localhost:5000/api/v1/tuition/query/20210001
+
+# Query student 20210002's tuition
+curl http://localhost:5000/api/v1/tuition/query/20210002
 ```
 
 ---
@@ -199,6 +208,21 @@ Query tuition (requires authentication)
 
 **Example**: `GET /api/v1/banking/tuition/20210001`
 **Headers**: `Authorization: Bearer {token}`
+
+**Response**:
+```json
+{
+  "tuitionTotal": 50000.00,
+  "balance": 50000.00
+}
+```
+
+**Example Usage**:
+```bash
+# Replace YOUR_TOKEN with actual JWT token from login
+curl http://localhost:5000/api/v1/banking/tuition/20210001 \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
 #### POST `/api/v1/banking/pay`
 Process tuition payment
@@ -217,9 +241,22 @@ Process tuition payment
 ```json
 {
   "status": "Successful",
-  "remainingBalance": 15000.00,
-  "message": "Partial payment processed..."
+  "remainingBalance": 40000.00,
+  "message": "Partial payment of 10000.00 processed successfully for term 2024-Fall"
 }
+```
+
+**Example Usage**:
+```bash
+# Partial payment
+curl -X POST http://localhost:5000/api/v1/banking/pay \
+  -H "Content-Type: application/json" \
+  -d '{"studentNo":"20210001","term":"2024-Fall","amount":10000.00}'
+
+# Full payment
+curl -X POST http://localhost:5000/api/v1/banking/pay \
+  -H "Content-Type: application/json" \
+  -d '{"studentNo":"20210004","term":"2024-Fall","amount":50000.00}'
 ```
 
 ---
@@ -228,6 +265,7 @@ Process tuition payment
 
 #### POST `/api/v1/admin/tuition`
 Add tuition for single student
+- **Authentication**: Required (Admin role)
 
 **Request**:
 ```json
@@ -238,13 +276,100 @@ Add tuition for single student
 }
 ```
 
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Tuition added successfully for student 20210001, term 2025-Spring"
+}
+```
+
+**Example Usage**:
+```bash
+# Replace YOUR_ADMIN_TOKEN with admin JWT token
+curl -X POST http://localhost:5000/api/v1/admin/tuition \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"studentNo":"20210001","term":"2025-Spring","amount":55000.00}'
+```
+
 #### POST `/api/v1/admin/tuition/batch`
 Batch upload tuition via CSV
+- **Authentication**: Required (Admin role)
 - **Content-Type**: `multipart/form-data`
 - **CSV Format**: `studentNo,term,amount`
 
+**Response**:
+```json
+{
+  "successCount": 5,
+  "errorCount": 0,
+  "errors": []
+}
+```
+
+**Example Usage**:
+```bash
+# First create a CSV file
+cat > tuition_batch.csv << 'EOF'
+studentNo,term,amount
+20210001,2025-Fall,60000
+20210002,2025-Fall,60000
+20210003,2025-Fall,60000
+20210004,2025-Fall,60000
+20210005,2025-Fall,60000
+EOF
+
+# Upload the CSV file
+curl -X POST http://localhost:5000/api/v1/admin/tuition/batch \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -F "file=@tuition_batch.csv"
+```
+
 #### GET `/api/v1/admin/unpaid/{term}?page=1&pageSize=20`
 Get unpaid tuition list with pagination
+- **Authentication**: Required (Admin role)
+
+**Response**:
+```json
+{
+  "data": [
+    {
+      "studentNo": "20210001",
+      "studentName": "Ahmet Yılmaz",
+      "term": "2024-Fall",
+      "totalAmount": 50000.00,
+      "balance": 50000.00,
+      "status": "UNPAID"
+    },
+    {
+      "studentNo": "20210002",
+      "studentName": "Ayşe Demir",
+      "term": "2024-Fall",
+      "totalAmount": 50000.00,
+      "balance": 25000.00,
+      "status": "PARTIAL"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 20,
+    "totalCount": 2,
+    "totalPages": 1
+  }
+}
+```
+
+**Example Usage**:
+```bash
+# Get unpaid tuition for 2024-Fall term
+curl "http://localhost:5000/api/v1/admin/unpaid/2024-Fall" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
+# Get with custom pagination
+curl "http://localhost:5000/api/v1/admin/unpaid/2024-Fall?page=1&pageSize=10" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+```
 
 ---
 
