@@ -504,8 +504,11 @@ University-Tuition-Payment-System/
 ## 🎓 Academic Information
 
 **Course**: SE 4458 - Büyük Ölçekli Sistemler İçin Sistem Mimarisi
+
 **Project**: Midterm Project
+
 **Semester**: Fall 2025
+
 **Student**: Ali Haktan SIĞIN (@alihaktan35)
 
 ---
