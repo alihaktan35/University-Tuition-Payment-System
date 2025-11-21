@@ -44,7 +44,7 @@ The system supports three types of clients:
 ## 🔗 Links
 
 - **GitHub Repository**: [University-Tuition-Payment-System](https://github.com/alihaktan35/University-Tuition-Payment-System)
-- **Local API Documentation**: http://localhost:5000/scalar/v1 (when running locally)
+- **Local API Documentation (Swagger UI)**: http://localhost:5000/swagger (when running locally)
 - **Deployed API**: `Coming soon - Will be deployed to Azure`
 
 ---
@@ -113,7 +113,7 @@ The system supports three types of clients:
 | **Authentication** | JWT (JSON Web Tokens) | - |
 | **Password Hashing** | BCrypt.Net-Next | Latest |
 | **CSV Processing** | CsvHelper | Latest |
-| **API Documentation** | Scalar API Reference | 2.11.0 |
+| **API Documentation** | Swagger UI (Swashbuckle) | 7.2.0 |
 
 ---
 
@@ -132,7 +132,7 @@ The system supports three types of clients:
 - ✅ Comprehensive request/response logging
 - ✅ Rate limiting (3 requests/day for mobile endpoint)
 - ✅ Automatic database migrations and seeding
-- ✅ Modern Scalar UI for API testing
+- ✅ Swagger UI for API testing and documentation
 - ✅ CORS enabled
 - ✅ Error handling with standardized responses
 
@@ -462,7 +462,7 @@ dotnet run
 ### Access Points
 
 - **API Gateway (Main Entry)**: http://localhost:5000
-- **API Documentation (Scalar UI)**: http://localhost:5000/scalar/v1
+- **API Documentation (Swagger UI)**: http://localhost:5000/swagger
 - **Direct API Access**: http://localhost:5001 (for testing only)
 
 ---
@@ -619,7 +619,7 @@ University-Tuition-Payment-System/
 - ✅ Pagination for unpaid list
 - ✅ API Gateway with YARP
 - ✅ Comprehensive logging
-- ✅ Modern API documentation with Scalar
+- ✅ Swagger UI API documentation
 - ✅ Database seeding with test data
 - ✅ Error handling with standard responses
 - ✅ Entity Framework migrations
@@ -648,4 +648,4 @@ University-Tuition-Payment-System/
 
 ---
 
-**Built with ASP.NET Core 9.0 | Documented with Scalar API Reference | Ready for Azure**
+**Built with ASP.NET Core 9.0 | Documented with Swagger UI | Ready for Azure**

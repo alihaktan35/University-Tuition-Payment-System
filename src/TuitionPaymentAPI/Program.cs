@@ -7,7 +7,6 @@ using TuitionPaymentAPI.Data;
 using TuitionPaymentAPI.Middleware;
 using TuitionPaymentAPI.Models;
 using TuitionPaymentAPI.Services;
-using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,39 +47,41 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Configure OpenAPI with JWT Bearer authentication
-builder.Services.AddOpenApi(options =>
+// Configure Swagger/OpenAPI with JWT Bearer authentication
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
 {
-    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
-        document.Components ??= new();
-        document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+        Title = "University Tuition Payment API",
+        Version = "v1",
+        Description = "API for managing university tuition payments with mobile app, banking, and admin interfaces"
+    });
 
-        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
-        {
-            Type = SecuritySchemeType.Http,
-            Scheme = "bearer",
-            BearerFormat = "JWT",
-            Description = "Enter your JWT token in the format: Bearer {your token}"
-        };
+    // Add JWT Authentication
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token in the format: Bearer {your token}"
+    });
 
-        // Add security requirement globally
-        document.SecurityRequirements = new List<OpenApiSecurityRequirement>
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
         {
-            new()
+            new OpenApiSecurityScheme
             {
-                [new OpenApiSecurityScheme
+                Reference = new OpenApiReference
                 {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                }] = Array.Empty<string>()
-            }
-        };
-
-        return Task.CompletedTask;
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 
@@ -100,12 +101,11 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference(options =>
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
     {
-        options.WithTitle("University Tuition Payment API");
-        options.WithTheme(ScalarTheme.Purple);
-        options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "University Tuition Payment API v1");
+        options.RoutePrefix = "swagger";
     });
 }
 
