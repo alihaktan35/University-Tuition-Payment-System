@@ -1,7 +1,23 @@
-using System.Diagnostics;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
+using APIGateway.Data;
+using APIGateway.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Entity Framework - SQLite for Development, SQL Server for Production
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (builder.Environment.IsProduction() && connectionString!.Contains("database.windows.net"))
+{
+    // Use SQL Server for Azure production
+    builder.Services.AddDbContext<GatewayDbContext>(options =>
+        options.UseSqlServer(connectionString));
+}
+else
+{
+    // Use SQLite for local development
+    builder.Services.AddDbContext<GatewayDbContext>(options =>
+        options.UseSqlite(connectionString));
+}
 
 // Add YARP reverse proxy
 builder.Services.AddReverseProxy()
@@ -20,77 +36,36 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Add request/response logging middleware
-app.Use(async (context, next) =>
+// Apply database migrations for Gateway
+using (var scope = app.Services.CreateScope())
 {
-    var stopwatch = Stopwatch.StartNew();
-
-    // Log request
-    var requestLog = new StringBuilder();
-    requestLog.AppendLine("=== API GATEWAY - INCOMING REQUEST ===");
-    requestLog.AppendLine($"HTTP Method: {context.Request.Method}");
-    requestLog.AppendLine($"Path: {context.Request.Path}{context.Request.QueryString}");
-    requestLog.AppendLine($"Timestamp: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff} UTC");
-    requestLog.AppendLine($"Source IP: {context.Connection.RemoteIpAddress}");
-    requestLog.AppendLine($"Headers: {string.Join(", ", context.Request.Headers.Select(h => $"{h.Key}={h.Value}"))}");
-    requestLog.AppendLine($"Content Length: {context.Request.ContentLength ?? 0} bytes");
-
-    var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-    requestLog.AppendLine($"Authentication: {(authHeader != null ? "Token Present" : "No Token")}");
-
-    Console.WriteLine(requestLog.ToString());
-
-    // Capture original response stream
-    var originalBodyStream = context.Response.Body;
-
+    var services = scope.ServiceProvider;
     try
     {
-        using var responseBody = new MemoryStream();
-        context.Response.Body = responseBody;
-
-        await next(context);
-
-        stopwatch.Stop();
-
-        // Log response
-        var responseLog = new StringBuilder();
-        responseLog.AppendLine("=== API GATEWAY - OUTGOING RESPONSE ===");
-        responseLog.AppendLine($"Status Code: {context.Response.StatusCode}");
-        responseLog.AppendLine($"Response Time: {stopwatch.ElapsedMilliseconds} ms");
-        responseLog.AppendLine($"Response Size: {responseBody.Length} bytes");
-
-        if (context.Response.StatusCode == 401)
-        {
-            responseLog.AppendLine("Authentication: FAILED - Unauthorized");
-        }
-        else if (context.Response.StatusCode == 403)
-        {
-            responseLog.AppendLine("Authentication: Token Valid but Insufficient Permissions");
-        }
-        else if (context.Response.StatusCode == 429)
-        {
-            responseLog.AppendLine("Rate Limit: EXCEEDED");
-        }
-        else if (authHeader != null)
-        {
-            responseLog.AppendLine("Authentication: SUCCEEDED");
-        }
-
-        Console.WriteLine(responseLog.ToString());
-
-        // Copy response back to original stream
-        responseBody.Seek(0, SeekOrigin.Begin);
-        await responseBody.CopyToAsync(originalBodyStream);
+        var context = services.GetRequiredService<GatewayDbContext>();
+        context.Database.Migrate();
+        app.Logger.LogInformation("Gateway database migrations applied successfully");
     }
-    finally
+    catch (Exception ex)
     {
-        context.Response.Body = originalBodyStream;
+        app.Logger.LogError(ex, "An error occurred while migrating the Gateway database");
     }
-});
+}
 
 app.UseCors();
 
-// Map reverse proxy routes
+// CRITICAL: Rate limiting must be applied BEFORE reverse proxy
+// This ensures rate limits are enforced at the gateway level
+app.UseMiddleware<RateLimitingMiddleware>();
+
+// Enhanced logging middleware with all required fields
+app.UseMiddleware<RequestLoggingMiddleware>();
+
+// Map reverse proxy routes (this forwards to backend API)
 app.MapReverseProxy();
+
+app.Logger.LogInformation("API Gateway started successfully");
+app.Logger.LogInformation("Rate limiting enabled at Gateway level");
+app.Logger.LogInformation("Comprehensive request/response logging enabled");
 
 app.Run();

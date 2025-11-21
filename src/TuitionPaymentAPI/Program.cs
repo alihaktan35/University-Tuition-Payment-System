@@ -16,10 +16,20 @@ builder.Services.AddControllers();
 // Register services
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-// Configure Entity Framework with SQLite (for local development)
-// For production, use UseSqlServer with Azure SQL Database
-builder.Services.AddDbContext<TuitionDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Configure Entity Framework - SQLite for Development, SQL Server for Production
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (builder.Environment.IsProduction() && connectionString!.Contains("database.windows.net"))
+{
+    // Use SQL Server for Azure production
+    builder.Services.AddDbContext<TuitionDbContext>(options =>
+        options.UseSqlServer(connectionString));
+}
+else
+{
+    // Use SQLite for local development
+    builder.Services.AddDbContext<TuitionDbContext>(options =>
+        options.UseSqlite(connectionString));
+}
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -56,6 +66,19 @@ builder.Services.AddSwaggerGen(options =>
         Title = "University Tuition Payment API",
         Version = "v1",
         Description = "API for managing university tuition payments with mobile app, banking, and admin interfaces"
+    });
+
+    // Configure Swagger to use API Gateway URLs
+    // IMPORTANT: All API requests MUST go through the API Gateway
+    options.AddServer(new OpenApiServer
+    {
+        Url = "http://localhost:5000",
+        Description = "API Gateway (Local Development)"
+    });
+    options.AddServer(new OpenApiServer
+    {
+        Url = "https://your-gateway-url.azurewebsites.net",
+        Description = "API Gateway (Azure Production)"
     });
 
     // Add JWT Authentication
@@ -116,11 +139,8 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Add Rate Limiting Middleware
-app.UseMiddleware<RateLimitingMiddleware>();
-
-// Add Logging Middleware
-app.UseMiddleware<RequestLoggingMiddleware>();
+// NOTE: Rate limiting has been moved to API Gateway level
+// Logging is also handled at Gateway level for comprehensive request/response tracking
 
 app.MapControllers();
 

@@ -45,7 +45,11 @@ The system supports three types of clients:
 
 - **GitHub Repository**: [University-Tuition-Payment-System](https://github.com/alihaktan35/University-Tuition-Payment-System)
 - **Local API Documentation (Swagger UI)**: http://localhost:5000/swagger (when running locally)
-- **Deployed API**: `Coming soon - Will be deployed to Azure`
+- **Deployed API Gateway**: `To be deployed to Azure App Service`
+- **Deployed Main API**: `To be deployed to Azure App Service`
+- **Video Presentation**: `[Coming Soon - Recording After Deployment]`
+- **Testing Guide**: See [TEST_ALL_ENDPOINTS.md](TEST_ALL_ENDPOINTS.md)
+- **Deployment Guide**: See [AZURE_DEPLOYMENT_GUIDE.md](AZURE_DEPLOYMENT_GUIDE.md)
 
 ---
 
@@ -128,13 +132,19 @@ The system supports three types of clients:
 - ✅ Role-based authorization (Admin, BankingSystem)
 
 ### Technical Features
-- ✅ API Gateway with YARP reverse proxy
-- ✅ Comprehensive request/response logging
-- ✅ Rate limiting (3 requests/day for mobile endpoint)
+- ✅ **API Gateway with YARP reverse proxy** (single entry point)
+- ✅ **Rate limiting at Gateway level** (3 requests/day, database-backed)
+- ✅ **Comprehensive Gateway logging** with all required fields:
+  - Request: Method, path, timestamp, IP, headers, size, auth status
+  - Response: Status code, latency (ms), size, detailed auth results
+  - Special events: Rate limit exceeded, proxy failures
+- ✅ JWT-based authentication with role-based authorization
 - ✅ Automatic database migrations and seeding
-- ✅ Swagger UI for API testing and documentation
+- ✅ Swagger UI configured to use Gateway URLs
+- ✅ Support for both SQLite (dev) and Azure SQL (production)
 - ✅ CORS enabled
 - ✅ Error handling with standardized responses
+- ✅ Ready for Azure App Service deployment
 
 ---
 
@@ -583,6 +593,54 @@ ConnectionStrings__DefaultConnection=<azure-sql-connection-string>
 ### Issue 6: Entity Framework Model Changes with DateTime.UtcNow
 **Solution**: Replaced `DateTime.UtcNow` in seed data with fixed DateTime values. Moved User seeding from DbContext to Program.cs to handle BCrypt's non-deterministic hashing.
 
+### Issue 7: Rate Limiting Requirements - Gateway vs API Level
+**Problem**: Initial implementation had rate limiting in the API project, but requirements specify "Rate limiting should be implemented in the API gateway."
+
+**Solution**:
+- Created separate `GatewayDbContext` with `RateLimit` model in APIGateway project
+- Moved `RateLimitingMiddleware` to Gateway and applied BEFORE YARP proxy
+- Rate limits now enforced at gateway level, preventing requests from reaching backend API
+- Database-backed for persistence and distributed deployment support
+
+### Issue 8: Comprehensive Gateway Logging Requirements
+**Problem**: Requirements specify detailed logging including authentication success/failure, mapping template failures, and specific request/response fields.
+
+**Solution**:
+- Created enhanced `RequestLoggingMiddleware` in Gateway
+- Logs all required fields: method, path, timestamp, IP, headers, request/response sizes
+- Infers detailed authentication status from response codes and header presence
+- Catches and logs proxy/mapping template failures (502, 503, 504 errors)
+- Logs response latency in milliseconds
+
+### Issue 9: Swagger Must Point to Gateway URL
+**Problem**: Swagger generating API URLs pointing directly to backend (port 5001), bypassing gateway.
+
+**Solution**: Added server configuration in Swagger setup:
+```csharp
+options.AddServer(new OpenApiServer
+{
+    Url = "http://localhost:5000",
+    Description = "API Gateway (Local Development)"
+});
+```
+Now all Swagger requests go through gateway (port 5000).
+
+### Issue 10: Supporting Both SQLite and Azure SQL
+**Problem**: Need SQLite for local development but Azure SQL for production.
+
+**Solution**: Environment-based database provider selection:
+```csharp
+if (builder.Environment.IsProduction() && connectionString!.Contains("database.windows.net"))
+{
+    options.UseSqlServer(connectionString);
+}
+else
+{
+    options.UseSqlite(connectionString);
+}
+```
+Added `appsettings.Production.json` for both projects with Azure SQL connection strings.
+
 ---
 
 ## 📁 Project Structure
@@ -611,18 +669,35 @@ University-Tuition-Payment-System/
 
 ## 🔑 Key Features Implemented
 
-- ✅ All 6 required API endpoints
-- ✅ JWT authentication with role-based authorization
-- ✅ Rate limiting (3 requests/day for mobile)
-- ✅ Partial payment support
-- ✅ CSV batch upload with validation
-- ✅ Pagination for unpaid list
-- ✅ API Gateway with YARP
-- ✅ Comprehensive logging
-- ✅ Swagger UI API documentation
-- ✅ Database seeding with test data
-- ✅ Error handling with standard responses
-- ✅ Entity Framework migrations
+### Core Requirements:
+- ✅ All 6 required API endpoints fully functional
+- ✅ JWT authentication with role-based authorization (Admin, BankingSystem)
+- ✅ **Rate limiting at API Gateway level** (3 requests/day, database-backed)
+- ✅ Paging support on unpaid tuition list endpoint
+- ✅ API versioning (`/api/v1/`)
+- ✅ Partial payment support with balance tracking
+- ✅ CSV batch upload with comprehensive validation
+- ✅ Swagger UI configured to use Gateway URLs
+
+### API Gateway Implementation:
+- ✅ YARP reverse proxy for request routing
+- ✅ **Rate limiting enforced BEFORE proxy** (gateway level)
+- ✅ **Comprehensive logging with ALL required fields**:
+  - ✅ Request: HTTP method, full path, timestamp, source IP, headers, size
+  - ✅ Response: Status code, latency (ms), size
+  - ✅ Authentication: Detailed success/failure status
+  - ✅ Rate limiting: Exceeded events logged
+  - ✅ Mapping template failures: Proxy errors logged
+- ✅ Single entry point for all API requests
+
+### Technical Excellence:
+- ✅ Separate databases for Gateway and API with migrations
+- ✅ Support for SQLite (dev) and Azure SQL (production)
+- ✅ Database seeding with test users and students
+- ✅ Error handling with standardized responses
+- ✅ Production-ready configuration files
+- ✅ Comprehensive testing documentation
+- ✅ Azure deployment guide included
 
 ---
 
