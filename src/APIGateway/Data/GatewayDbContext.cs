@@ -9,6 +9,13 @@ public class GatewayDbContext : DbContext
     {
     }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        // Suppress the pending model changes warning for production deployment
+        optionsBuilder.ConfigureWarnings(warnings =>
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    }
+
     public DbSet<RateLimit> RateLimits { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

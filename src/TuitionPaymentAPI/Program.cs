@@ -77,7 +77,7 @@ builder.Services.AddSwaggerGen(options =>
     });
     options.AddServer(new OpenApiServer
     {
-        Url = "https://your-gateway-url.azurewebsites.net",
+        Url = "https://ahs-tuition-gateway.azurewebsites.net",
         Description = "API Gateway (Azure Production)"
     });
 
@@ -122,17 +122,19 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
+// Enable Swagger in all environments for this project
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "University Tuition Payment API v1");
+    options.RoutePrefix = "swagger";
+});
+
+// Disable HTTPS redirection in production (Azure handles this at load balancer level)
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "University Tuition Payment API v1");
-        options.RoutePrefix = "swagger";
-    });
+    app.UseHttpsRedirection();
 }
-
-app.UseHttpsRedirection();
 
 app.UseCors();
 

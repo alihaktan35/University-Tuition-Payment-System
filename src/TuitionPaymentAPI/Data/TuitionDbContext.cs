@@ -9,6 +9,13 @@ public class TuitionDbContext : DbContext
     {
     }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        // Suppress the pending model changes warning for production deployment
+        optionsBuilder.ConfigureWarnings(warnings =>
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    }
+
     public DbSet<Student> Students { get; set; }
     public DbSet<Tuition> Tuitions { get; set; }
     public DbSet<Payment> Payments { get; set; }
