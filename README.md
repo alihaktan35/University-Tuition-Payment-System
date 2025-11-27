@@ -10,23 +10,6 @@ A comprehensive REST API system for managing university tuition payments with an
 
 ---
 
-## 📋 Table of Contents
-
-- [Project Overview](#project-overview)
-- [Links](#links)
-- [Architecture](#architecture)
-- [Technology Stack](#technology-stack)
-- [Features](#features)
-- [API Endpoints](#api-endpoints)
-- [Data Model](#data-model)
-- [Getting Started](#getting-started)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Assumptions](#assumptions)
-- [Issues & Solutions](#issues--solutions)
-
----
-
 ## 🎯 Project Overview
 
 This project implements a REST API system for managing university tuition payments. The system consists of:
