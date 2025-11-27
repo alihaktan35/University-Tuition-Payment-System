@@ -1,709 +1,736 @@
 # University Tuition Payment System API
 
-A comprehensive REST API system for managing university tuition payments with an API Gateway, rate limiting, JWT authentication, and full CRUD operations.
+## Project Information
+- **Course**: SE 4458 Software Architecture & Design of Modern Large Scale Systems
+- **Assignment**: Midterm Project - Group 2
+- **Project Type**: University Tuition Payment System API
 
-**Course**: SE 4458 - Büyük Ölçekli Sistemler İçin Sistem Mimarisi
+## Source Code
+- **Repository**: [Add your GitHub repository link here]
+- **Technology Stack**:
+  - .NET 8.0 / ASP.NET Core
+  - Entity Framework Core
+  - SQL Server / Azure SQL Database
+  - JWT Authentication
+  - Swagger/OpenAPI
 
-**Project Type**: Midterm Project
+## Project Overview
 
-**Academic Year**: 2025-2026
+This project implements a RESTful API system for managing university tuition payments. The system serves three main client types:
 
----
+1. **University Mobile App** - Students can query their tuition status
+2. **Banking App** - Banks can query tuition and process payments
+3. **University Admin Portal** - Administrators can manage tuition records
 
-## 🎯 Project Overview
+### Key Features
+- RESTful API with versioning (v1)
+- JWT-based authentication for secure endpoints
+- Rate limiting (3 requests per day for mobile queries)
+- Comprehensive request/response logging
+- Paging support for large datasets
+- Batch CSV upload for tuition records
+- Partial payment handling
+- Azure-ready deployment configuration
 
-This project implements a REST API system for managing university tuition payments. The system consists of:
+## Architecture & Design
 
-1. **Main API** (`TuitionPaymentAPI`) - Handles all business logic, authentication, and database operations
-2. **API Gateway** (`APIGateway`) - Routes all requests, provides logging, and acts as single entry point
+### Design Decisions
 
-The system supports three types of clients:
-- **University Mobile App**: Students query their tuition (rate-limited to 3 requests/day)
-- **Banking App**: Banks query tuition and process payments (authenticated)
-- **Admin Portal**: Administrators manage tuition records (authenticated)
+1. **Layered Architecture**
+   - Controllers: Handle HTTP requests/responses
+   - Services: Business logic layer
+   - Data: Database context and models
+   - DTOs: Data transfer objects for API contracts
 
----
+2. **Database Design**
+   - Normalized relational database design
+   - Foreign key relationships for data integrity
+   - Indexes on frequently queried fields (StudentNo, Term)
 
-## 🔗 Links
+3. **Authentication Strategy**
+   - JWT tokens for Banking and Admin APIs
+   - No authentication for Mobile app (rate-limited instead)
+   - No authentication for payment endpoint (public-facing)
 
-- **GitHub Repository**: [University-Tuition-Payment-System](https://github.com/alihaktan35/University-Tuition-Payment-System)
-- **Local API Documentation (Swagger UI)**: http://localhost:5000/swagger (when running locally)
-- **Deployed API Gateway**: `To be deployed to Azure App Service`
-- **Deployed Main API**: `To be deployed to Azure App Service`
-- **Video Presentation**: `[Coming Soon - Recording After Deployment]`
-- **Testing Guide**: See [TEST_ALL_ENDPOINTS.md](TEST_ALL_ENDPOINTS.md)
-- **Deployment Guide**: See [AZURE_DEPLOYMENT_GUIDE.md](AZURE_DEPLOYMENT_GUIDE.md)
+4. **Rate Limiting Strategy**
+   - Database-backed rate limiting
+   - Per-student, per-endpoint tracking
+   - Daily reset mechanism
 
----
+### Assumptions
 
-## 🏗️ Architecture
+1. **Student Management**
+   - Students are auto-created when tuition is added if they don't exist
+   - StudentNo is the primary identifier (unique)
 
-### System Architecture Diagram
+2. **Payment Processing**
+   - No actual payment gateway integration (as per requirements)
+   - Partial payments are supported and tracked
+   - Balance is automatically updated after payment
+
+3. **Term Format**
+   - Terms follow format: "YYYY-Season" (e.g., "2024-Fall", "2025-Spring")
+
+4. **Security**
+   - JWT tokens expire after 24 hours
+   - Passwords are hashed using BCrypt
+   - Sensitive headers are not logged
+
+5. **Deployment**
+   - Designed for Azure App Service
+   - Azure SQL Database for production
+   - LocalDB for development
+
+## Data Model
+
+### Entity Relationship Diagram (Description)
 
 ```
 ┌─────────────────┐
-│  Mobile App     │
-│  (Rate Limited) │
-└────────┬────────┘
-         │
-┌────────▼────────┐     ┌──────────────────┐
-│  Banking App    │────▶│   API Gateway    │
-│ (Authenticated) │     │  (Port 5000)     │
-└─────────────────┘     │  - Logging       │
-                        │  - Routing       │
-┌─────────────────┐     │  - YARP Proxy    │
-│   Admin Portal  │────▶└────────┬─────────┘
-│ (Authenticated) │              │
-└─────────────────┘              │
-                        ┌────────▼─────────┐
-                        │  Tuition API     │
-                        │  (Port 5001)     │
-                        │  - Controllers   │
-                        │  - Auth (JWT)    │
-                        │  - Rate Limiting │
-                        │  - Middleware    │
-                        └────────┬─────────┘
-                                 │
-                        ┌────────▼─────────┐
-                        │   SQLite DB      │
-                        │  (Local Dev)     │
-                        │  or Azure SQL    │
-                        └──────────────────┘
+│    Student      │
+├─────────────────┤
+│ Id (PK)         │
+│ StudentNo (UK)  │──┐
+│ Name            │  │
+│ Email           │  │
+│ CreatedAt       │  │
+└─────────────────┘  │
+                     │
+                     │ 1:N
+                     │
+┌─────────────────┐  │    ┌─────────────────┐
+│    Tuition      │◄─┘    │    Payment      │
+├─────────────────┤       ├─────────────────┤
+│ Id (PK)         │──────►│ Id (PK)         │
+│ StudentId (FK)  │  1:N  │ TuitionId (FK)  │
+│ StudentNo       │       │ StudentId (FK)  │
+│ Term            │       │ StudentNo       │
+│ Amount          │       │ Term            │
+│ Balance         │       │ Amount          │
+│ IsPaid          │       │ Status          │
+│ CreatedAt       │       │ PaymentDate     │
+│ PaidAt          │       │ ErrorMessage    │
+└─────────────────┘       └─────────────────┘
+
+┌─────────────────┐       ┌─────────────────┐
+│   RateLimit     │       │      User       │
+├─────────────────┤       ├─────────────────┤
+│ Id (PK)         │       │ Id (PK)         │
+│ StudentNo       │       │ Username (UK)   │
+│ Endpoint        │       │ PasswordHash    │
+│ RequestDate     │       │ Role            │
+│ RequestCount    │       │ CreatedAt       │
+└─────────────────┘       └─────────────────┘
+
+┌─────────────────┐
+│     ApiLog      │
+├─────────────────┤
+│ Id (PK)         │
+│ HttpMethod      │
+│ RequestPath     │
+│ RequestTimestamp│
+│ SourceIpAddress │
+│ RequestHeaders  │
+│ RequestSize     │
+│ AuthSucceeded   │
+│ StatusCode      │
+│ ResponseLatency │
+│ ResponseSize    │
+│ ErrorMessage    │
+└─────────────────┘
 ```
 
-### Request Flow
+### Key Entities
 
-1. Client sends request to **API Gateway** (localhost:5000)
-2. Gateway logs request details (method, path, IP, headers, timestamp)
-3. Gateway forwards request to **Main API** (localhost:5001)
-4. Main API processes request:
-   - Rate limiting (for mobile endpoints)
-   - Authentication validation (JWT)
-   - Business logic execution
-   - Database operations
-5. Main API returns response
-6. Gateway logs response (status, latency, size)
-7. Gateway returns response to client
+**Student**
+- Primary entity for student information
+- Unique StudentNo as business key
 
----
+**Tuition**
+- Tracks tuition per student per term
+- Unique constraint on (StudentNo, Term)
+- Maintains balance for partial payments
 
-## 🛠️ Technology Stack
+**Payment**
+- Records all payment transactions
+- Links to both Student and Tuition
+- Tracks payment status (Successful, Partial, Error)
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| **Framework** | ASP.NET Core Web API | 9.0 |
-| **Language** | C# | 12.0 |
-| **Database (Dev)** | SQLite | 9.0 |
-| **Database (Prod)** | Azure SQL Database | - |
-| **ORM** | Entity Framework Core | 9.0 |
-| **API Gateway** | YARP (Yet Another Reverse Proxy) | 2.3.0 |
-| **Authentication** | JWT (JSON Web Tokens) | - |
-| **Password Hashing** | BCrypt.Net-Next | Latest |
-| **CSV Processing** | CsvHelper | Latest |
-| **API Documentation** | Swagger UI (Swashbuckle) | 7.2.0 |
+**RateLimit**
+- Tracks API call frequency
+- Enforces 3 calls per student per day limit
 
----
+**User**
+- Authentication for Banking and Admin users
+- Role-based access control
 
-## ✨ Features
+**ApiLog**
+- Comprehensive logging of all API requests
+- Tracks performance, authentication, and errors
 
-### Core Functionality
-- ✅ Student tuition query (mobile & banking apps)
-- ✅ Payment processing with partial payment support
-- ✅ Admin tuition management (single & batch CSV upload)
-- ✅ Unpaid tuition reporting with pagination
-- ✅ JWT-based authentication
-- ✅ Role-based authorization (Admin, BankingSystem)
+## API Endpoints
 
-### Technical Features
-- ✅ **API Gateway with YARP reverse proxy** (single entry point)
-- ✅ **Rate limiting at Gateway level** (3 requests/day, database-backed)
-- ✅ **Comprehensive Gateway logging** with all required fields:
-  - Request: Method, path, timestamp, IP, headers, size, auth status
-  - Response: Status code, latency (ms), size, detailed auth results
-  - Special events: Rate limit exceeded, proxy failures
-- ✅ JWT-based authentication with role-based authorization
-- ✅ Automatic database migrations and seeding
-- ✅ Swagger UI configured to use Gateway URLs
-- ✅ Support for both SQLite (dev) and Azure SQL (production)
-- ✅ CORS enabled
-- ✅ Error handling with standardized responses
-- ✅ Ready for Azure App Service deployment
+### Base URL
+- Development: `https://localhost:5001`
+- Production: `https://[your-app-name].azurewebsites.net`
+
+### API Versioning
+All endpoints are versioned: `/api/v1/...`
 
 ---
 
-## 📡 API Endpoints
+### Authentication Endpoints
 
-### Authentication
+#### POST /api/v1/auth/login
+Authenticate and receive JWT token
 
-#### POST `/api/v1/auth/login`
-Authenticate and get JWT token
-
-**Request**:
+**Request Body:**
 ```json
 {
   "username": "admin",
-  "password": "Admin123!"
+  "password": "admin123"
 }
 ```
 
-**Response**:
+**Response:**
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "expiresIn": 86400,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "username": "admin",
   "role": "Admin"
 }
 ```
 
-**Example Usage**:
-```bash
-curl -X POST http://localhost:5000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"Admin123!"}'
-```
+**Default Credentials:**
+- Admin: `username: admin, password: admin123`
+- Banking: `username: banking, password: banking123`
 
 ---
 
 ### Mobile App Endpoints
 
-#### GET `/api/v1/tuition/query/{studentNo}`
-Query tuition for a student
-- **Authentication**: None
-- **Rate Limit**: 3 requests per student per day
+#### GET /api/v1/mobile/tuition/{studentNo}
+Query tuition information for a student
 
-**Example**: `GET /api/v1/tuition/query/20210001`
+**Authentication:** None
+**Rate Limit:** 3 requests per student per day
+**Paging:** No
 
-**Response**:
+**Response:**
 ```json
 {
-  "tuitionTotal": 50000.00,
-  "balance": 50000.00
+  "studentNo": "2021001",
+  "tuitionTotal": 30000.00,
+  "balance": 15000.00,
+  "isPaid": false
 }
 ```
 
-**Example Usage**:
-```bash
-# Query student 20210001's tuition
-curl http://localhost:5000/api/v1/tuition/query/20210001
-
-# Query student 20210002's tuition
-curl http://localhost:5000/api/v1/tuition/query/20210002
-```
+**Status Codes:**
+- 200: Success
+- 404: Student not found
+- 429: Rate limit exceeded
 
 ---
 
 ### Banking App Endpoints
 
-#### GET `/api/v1/banking/tuition/{studentNo}`
-Query tuition (requires authentication)
-- **Authentication**: Required (JWT)
+#### GET /api/v1/banking/tuition/{studentNo}
+Query tuition information (authenticated)
 
-**Example**: `GET /api/v1/banking/tuition/20210001`
-**Headers**: `Authorization: Bearer {token}`
+**Authentication:** Required (Banking or Admin role)
+**Rate Limit:** None
+**Paging:** No
 
-**Response**:
-```json
-{
-  "tuitionTotal": 50000.00,
-  "balance": 50000.00
-}
+**Headers:**
+```
+Authorization: Bearer {token}
 ```
 
-**Example Usage**:
-```bash
-# Replace YOUR_TOKEN with actual JWT token from login
-curl http://localhost:5000/api/v1/banking/tuition/20210001 \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
+**Response:** Same as mobile endpoint
 
-#### POST `/api/v1/banking/pay`
-Process tuition payment
-- **Authentication**: None
-
-**Request**:
-```json
-{
-  "studentNo": "20210001",
-  "term": "2024-Fall",
-  "amount": 10000.00
-}
-```
-
-**Response**:
-```json
-{
-  "status": "Successful",
-  "remainingBalance": 40000.00,
-  "message": "Partial payment of 10000.00 processed successfully for term 2024-Fall"
-}
-```
-
-**Example Usage**:
-```bash
-# Partial payment
-curl -X POST http://localhost:5000/api/v1/banking/pay \
-  -H "Content-Type: application/json" \
-  -d '{"studentNo":"20210001","term":"2024-Fall","amount":10000.00}'
-
-# Full payment
-curl -X POST http://localhost:5000/api/v1/banking/pay \
-  -H "Content-Type: application/json" \
-  -d '{"studentNo":"20210004","term":"2024-Fall","amount":50000.00}'
-```
+**Status Codes:**
+- 200: Success
+- 401: Unauthorized
+- 404: Student not found
 
 ---
 
-### Admin Endpoints (All require Admin role authentication)
+#### POST /api/v1/banking/payment
+Process tuition payment
 
-#### POST `/api/v1/admin/tuition`
-Add tuition for single student
-- **Authentication**: Required (Admin role)
+**Authentication:** None
+**Rate Limit:** None
+**Paging:** No
 
-**Request**:
+**Request Body:**
 ```json
 {
-  "studentNo": "20210001",
-  "term": "2025-Spring",
-  "amount": 55000.00
+  "studentNo": "2021001",
+  "term": "2024-Fall",
+  "amount": 7500.00
 }
 ```
 
-**Response**:
+**Response:**
 ```json
 {
-  "success": true,
-  "message": "Tuition added successfully for student 20210001, term 2025-Spring"
+  "status": "Partial",
+  "amountPaid": 7500.00,
+  "remainingBalance": 7500.00,
+  "message": "Partial payment processed. Remaining balance: $7,500.00"
 }
 ```
 
-**Example Usage**:
-```bash
-# Replace YOUR_ADMIN_TOKEN with admin JWT token
-curl -X POST http://localhost:5000/api/v1/admin/tuition \
-  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"studentNo":"20210001","term":"2025-Spring","amount":55000.00}'
-```
+**Status Values:**
+- `Successful`: Full payment completed
+- `Partial`: Partial payment, balance remains
+- `Error`: Payment failed
 
-#### POST `/api/v1/admin/tuition/batch`
-Batch upload tuition via CSV
-- **Authentication**: Required (Admin role)
-- **Content-Type**: `multipart/form-data`
-- **CSV Format**: `studentNo,term,amount`
+**Status Codes:**
+- 200: Success
+- 400: Bad request (invalid amount, already paid, etc.)
 
-**Response**:
+---
+
+### Admin Endpoints
+
+All admin endpoints require authentication with Admin role.
+
+#### POST /api/v1/admin/tuition
+Add tuition for a single student
+
+**Authentication:** Required (Admin role)
+**Rate Limit:** None
+**Paging:** No
+
+**Request Body:**
 ```json
 {
-  "successCount": 5,
-  "errorCount": 0,
-  "errors": []
+  "studentNo": "2021009",
+  "term": "2024-Fall",
+  "amount": 15000.00
 }
 ```
 
-**Example Usage**:
-```bash
-# First create a CSV file
-cat > tuition_batch.csv << 'EOF'
-studentNo,term,amount
-20210001,2025-Fall,60000
-20210002,2025-Fall,60000
-20210003,2025-Fall,60000
-20210004,2025-Fall,60000
-20210005,2025-Fall,60000
-EOF
-
-# Upload the CSV file
-curl -X POST http://localhost:5000/api/v1/admin/tuition/batch \
-  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
-  -F "file=@tuition_batch.csv"
-```
-
-#### GET `/api/v1/admin/unpaid/{term}?page=1&pageSize=20`
-Get unpaid tuition list with pagination
-- **Authentication**: Required (Admin role)
-
-**Response**:
+**Response:**
 ```json
 {
-  "data": [
+  "status": "Success",
+  "message": "Tuition added successfully for student 2021009",
+  "recordsProcessed": 1
+}
+```
+
+**Status Codes:**
+- 200: Success
+- 400: Error (duplicate, invalid data)
+- 401: Unauthorized
+
+---
+
+#### POST /api/v1/admin/tuition/batch
+Batch upload tuitions from CSV file
+
+**Authentication:** Required (Admin role)
+**Rate Limit:** None
+**Paging:** No
+
+**Request:** multipart/form-data with CSV file
+
+**CSV Format:**
+```csv
+StudentNo,Term,Amount
+2021006,2024-Fall,15000.00
+2021007,2025-Spring,16000.00
+```
+
+**Response:**
+```json
+{
+  "status": "Success",
+  "message": "Batch processing complete. 2 records added successfully.",
+  "recordsProcessed": 2
+}
+```
+
+**Status Codes:**
+- 200: Success
+- 400: Invalid file format
+- 401: Unauthorized
+
+---
+
+#### GET /api/v1/admin/tuition/unpaid/{term}
+Get list of students with unpaid tuition
+
+**Authentication:** Required (Admin role)
+**Rate Limit:** None
+**Paging:** Yes
+
+**Query Parameters:**
+- `pageNumber` (optional): Page number (default: 1)
+- `pageSize` (optional): Records per page (default: 10, max: 100)
+
+**Example:**
+```
+GET /api/v1/admin/tuition/unpaid/2024-Fall?pageNumber=1&pageSize=10
+```
+
+**Response:**
+```json
+{
+  "term": "2024-Fall",
+  "students": [
     {
-      "studentNo": "20210001",
-      "studentName": "Ahmet Yılmaz",
-      "term": "2024-Fall",
-      "totalAmount": 50000.00,
-      "balance": 50000.00,
-      "status": "UNPAID"
-    },
-    {
-      "studentNo": "20210002",
-      "studentName": "Ayşe Demir",
-      "term": "2024-Fall",
-      "totalAmount": 50000.00,
-      "balance": 25000.00,
-      "status": "PARTIAL"
+      "studentNo": "2021002",
+      "name": "Ayşe Kaya",
+      "tuitionAmount": 15000.00,
+      "balance": 15000.00
     }
   ],
-  "pagination": {
-    "page": 1,
-    "pageSize": 20,
-    "totalCount": 2,
-    "totalPages": 1
-  }
+  "totalCount": 4,
+  "pageNumber": 1,
+  "pageSize": 10,
+  "totalPages": 1
 }
 ```
 
-**Example Usage**:
-```bash
-# Get unpaid tuition for 2024-Fall term
-curl "http://localhost:5000/api/v1/admin/unpaid/2024-Fall" \
-  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
-
-# Get with custom pagination
-curl "http://localhost:5000/api/v1/admin/unpaid/2024-Fall?page=1&pageSize=10" \
-  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
-```
+**Status Codes:**
+- 200: Success
+- 401: Unauthorized
 
 ---
 
-## 🗄️ Data Model
+## Logging
 
-### ER Diagram
+The API implements comprehensive logging as per requirements:
 
-```
-┌─────────────────┐
-│    STUDENT      │
-├─────────────────┤
-│ student_id (PK) │
-│ student_no (UQ) │◄──────┐
-│ name            │       │
-│ email           │       │
-│ created_at      │       │
-└─────────────────┘       │
-                          │
-         ┌────────────────┴─────┐
-         │       TUITION         │
-         ├──────────────────────┤
-         │ tuition_id (PK)       │
-         │ student_id (FK)       │──────┐
-         │ term                  │      │
-         │ total_amount          │      │
-         │ balance               │      │
-         │ paid_amount           │      │
-         │ status                │      │
-         │ created_at/updated_at │      │
-         └───────────────────────┘      │
-                                        │
-                       ┌────────────────▼────┐
-                       │     PAYMENT         │
-                       ├─────────────────────┤
-                       │ payment_id (PK)     │
-                       │ tuition_id (FK)     │
-                       │ amount              │
-                       │ payment_date        │
-                       │ status              │
-                       │ transaction_ref     │
-                       └─────────────────────┘
+### Request-Level Logs
+- HTTP method (GET/POST/PUT/DELETE)
+- Full request path (e.g., `/api/v1/tuition/2021001`)
+- Request timestamp
+- Source IP address
+- Headers received (sensitive headers excluded)
+- Request size (bytes)
+- Authentication success/failure
 
-Additional Tables:
-- RATE_LIMIT: Tracks API rate limiting
-- USER: Stores admin and banking system users
-```
+### Response-Level Logs
+- Status code (200, 400, 401, 403, 500, etc.)
+- Response latency (milliseconds)
+- Response size (bytes)
+- Error messages (if any)
+
+### Log Storage
+- Database: `ApiLogs` table
+- Console/File: Standard ASP.NET Core logging
 
 ---
 
-## 🚀 Getting Started
+## Rate Limiting
+
+### Mobile App Endpoint
+- **Endpoint:** `/api/v1/mobile/tuition/{studentNo}`
+- **Limit:** 3 requests per student per day
+- **Reset:** Daily at midnight UTC
+- **Response:** HTTP 429 (Too Many Requests) when exceeded
+
+### Implementation
+- Database-backed tracking
+- Per-student, per-endpoint counters
+- Automatic daily reset
+
+---
+
+## Deployment to Azure
 
 ### Prerequisites
-- **.NET SDK 9.0** or higher
-- **Git**
+1. Azure account with active subscription
+2. Azure CLI installed
+3. .NET 8.0 SDK
 
-### Installation
+### Quick Deployment Steps
 
-1. **Clone the repository**:
+1. **Create Azure Resources:**
 ```bash
-git clone https://github.com/yourusername/University-Tuition-Payment-System.git
-cd University-Tuition-Payment-System
+# Resource Group
+az group create --name UniversityTuitionRG --location eastus
+
+# SQL Database
+az sql server create --name university-tuition-sql --resource-group UniversityTuitionRG --admin-user sqladmin --admin-password <password>
+az sql db create --resource-group UniversityTuitionRG --server university-tuition-sql --name UniversityTuitionDB --service-objective F1
+
+# App Service
+az appservice plan create --name UniversityTuitionPlan --resource-group UniversityTuitionRG --sku F1 --is-linux
+az webapp create --name university-tuition-api --resource-group UniversityTuitionRG --plan UniversityTuitionPlan --runtime "DOTNET|8.0"
 ```
 
-2. **Restore packages**:
+2. **Configure Connection String:**
+```bash
+az webapp config connection-string set \
+  --name university-tuition-api \
+  --resource-group UniversityTuitionRG \
+  --connection-string-type SQLAzure \
+  --settings DefaultConnection="<your-connection-string>"
+```
+
+3. **Deploy Application:**
+```bash
+dotnet publish -c Release -o ./publish
+cd publish && zip -r ../deploy.zip . && cd ..
+az webapp deployment source config-zip --resource-group UniversityTuitionRG --name university-tuition-api --src deploy.zip
+```
+
+**Detailed Instructions:** See [azure-deploy.md](azure-deploy.md)
+
+---
+
+## Testing the API
+
+### Using Swagger UI
+1. Navigate to the root URL of your deployed API
+2. Swagger UI will load automatically
+3. Use the "Authorize" button to add JWT token for protected endpoints
+
+### Sample Test Flow
+
+1. **Login as Admin:**
+```bash
+curl -X POST https://your-api.azurewebsites.net/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+```
+
+2. **Query Tuition (Mobile):**
+```bash
+curl https://your-api.azurewebsites.net/api/v1/mobile/tuition/2021001
+```
+
+3. **Add Tuition (Admin):**
+```bash
+curl -X POST https://your-api.azurewebsites.net/api/v1/admin/tuition \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"studentNo":"2021010","term":"2024-Fall","amount":15000}'
+```
+
+4. **Process Payment:**
+```bash
+curl -X POST https://your-api.azurewebsites.net/api/v1/banking/payment \
+  -H "Content-Type: application/json" \
+  -d '{"studentNo":"2021001","term":"2024-Fall","amount":5000}'
+```
+
+5. **Query Unpaid Tuitions (Admin):**
+```bash
+curl https://your-api.azurewebsites.net/api/v1/admin/tuition/unpaid/2024-Fall?pageNumber=1&pageSize=10 \
+  -H "Authorization: Bearer <token>"
+```
+
+### Sample Data
+
+The database is seeded with sample data:
+
+**Students:**
+- 2021001 - Ahmet Yılmaz
+- 2021002 - Ayşe Kaya
+- 2021003 - Mehmet Demir
+- 2021004 - Fatma Şahin
+- 2021005 - Ali Çelik
+
+**Tuitions:**
+- Each student has tuition for 2024-Fall and 2025-Spring
+- Amount: 15,000.00 per term
+- Some tuitions are paid/partially paid for testing
+
+**Users:**
+- Admin: username=`admin`, password=`admin123`
+- Banking: username=`banking`, password=`banking123`
+
+---
+
+## Issues Encountered & Solutions
+
+### Issue 1: Rate Limiting Implementation
+**Problem:** Deciding between in-memory vs database-backed rate limiting
+**Solution:** Chose database-backed for scalability across multiple instances in cloud deployment
+
+### Issue 2: Partial Payment Handling
+**Problem:** How to track multiple partial payments for a single tuition
+**Solution:** Created separate Payment entity to track all transactions, update Tuition.Balance after each payment
+
+### Issue 3: Authentication Strategy
+**Problem:** Different auth requirements for different endpoints
+**Solution:** Used role-based authorization, selectively applied [Authorize] attribute per requirements
+
+### Issue 4: CSV Batch Upload
+**Problem:** Handling errors in batch processing
+**Solution:** Process records individually, continue on error, report summary with success/error counts
+
+### Issue 5: Logging Middleware
+**Problem:** Capturing response body without affecting stream
+**Solution:** Used MemoryStream to buffer response, then copy back to original stream
+
+---
+
+## Project Structure
+
+```
+UniversityTuitionAPI/
+├── Controllers/
+│   ├── AuthController.cs
+│   ├── MobileAppController.cs
+│   ├── BankingController.cs
+│   └── AdminController.cs
+├── Services/
+│   ├── IAuthService.cs & AuthService.cs
+│   ├── ITuitionService.cs & TuitionService.cs
+│   ├── IPaymentService.cs & PaymentService.cs
+│   ├── IAdminService.cs & AdminService.cs
+│   └── IRateLimitService.cs & RateLimitService.cs
+├── Models/
+│   ├── Student.cs
+│   ├── Tuition.cs
+│   ├── Payment.cs
+│   ├── RateLimit.cs
+│   ├── User.cs
+│   └── ApiLog.cs
+├── DTOs/
+│   ├── TuitionQueryResponse.cs
+│   ├── PaymentRequest.cs & PaymentResponse.cs
+│   ├── AddTuitionRequest.cs
+│   ├── TransactionResponse.cs
+│   ├── UnpaidTuitionResponse.cs
+│   └── LoginRequest.cs & LoginResponse.cs
+├── Data/
+│   ├── ApplicationDbContext.cs
+│   └── DbInitializer.cs
+├── Middleware/
+│   └── RequestResponseLoggingMiddleware.cs
+├── Program.cs
+├── appsettings.json
+├── azure-deploy.md
+├── web.config
+└── sample-tuitions.csv
+```
+
+---
+
+## Requirements Checklist
+
+### Functional Requirements
+- ✅ University Mobile App - Query Tuition (rate limited to 3/day)
+- ✅ Banking App - Query Tuition (with auth)
+- ✅ Banking App - Pay Tuition (no auth, partial payment support)
+- ✅ Admin - Add Tuition (with auth)
+- ✅ Admin - Batch Add Tuition from CSV (with auth)
+- ✅ Admin - Unpaid Tuition Status with paging (with auth)
+
+### Technical Requirements
+- ✅ REST API with versioning (v1)
+- ✅ JWT Authentication for Banking and Admin
+- ✅ Paging support (Unpaid Tuition Status)
+- ✅ Rate limiting (Mobile App)
+- ✅ API Gateway-ready architecture
+- ✅ Comprehensive logging (request/response details)
+- ✅ Swagger UI documentation
+- ✅ Database service integration (SQL Server/Azure SQL)
+- ✅ Azure deployment configuration
+- ✅ No frontend required
+
+### Deliverables
+- ✅ Source code with proper structure
+- ✅ README with design, assumptions, issues
+- ✅ Data model (ER diagram)
+- ✅ Azure deployment ready
+- ⏳ Video presentation link (add below)
+
+---
+
+## Video Presentation
+
+**Project Demonstration Video:**
+[Add your video link here - YouTube, Google Drive, or other platform]
+
+The video should cover:
+- Project overview and architecture
+- API endpoints demonstration
+- Authentication flow
+- Rate limiting demonstration
+- Batch upload functionality
+- Deployed application on Azure
+- Swagger UI walkthrough
+
+---
+
+## Local Development
+
+### Prerequisites
+- .NET 8.0 SDK
+- SQL Server or LocalDB
+- Visual Studio 2022 or VS Code
+
+### Running Locally
+
+1. **Clone the repository:**
+```bash
+git clone <your-repo-url>
+cd UniversityTuitionAPI
+```
+
+2. **Restore packages:**
 ```bash
 dotnet restore
 ```
 
-3. **Build the solution**:
+3. **Update connection string** in `appsettings.json` if needed
+
+4. **Run the application:**
 ```bash
-dotnet build
-```
-
-### Running Locally
-
-Run both applications in separate terminals:
-
-**Terminal 1 - Main API (Port 5001)**:
-```bash
-cd src/TuitionPaymentAPI
 dotnet run
 ```
 
-**Terminal 2 - API Gateway (Port 5000)**:
-```bash
-cd src/APIGateway
-dotnet run
+5. **Access Swagger UI:**
+```
+https://localhost:5001
 ```
 
-### Access Points
-
-- **API Gateway (Main Entry)**: http://localhost:5000
-- **API Documentation (Swagger UI)**: http://localhost:5000/swagger
-- **Direct API Access**: http://localhost:5001 (for testing only)
+### Database Initialization
+- Database is auto-created on first run
+- Sample data is automatically seeded
+- Uses EnsureCreated() for development
 
 ---
 
-## 🧪 Testing
+## Future Enhancements
 
-### Test Users
+1. **API Gateway Integration**
+   - Implement Azure API Management
+   - Centralized rate limiting
+   - Advanced monitoring and analytics
 
-| Username | Password | Role |
-|----------|----------|------|
-| admin | Admin123! | Admin |
-| bankapi | Bank123! | BankingSystem |
+2. **Enhanced Security**
+   - OAuth 2.0 integration
+   - API key authentication for mobile apps
+   - Rate limiting per API key
 
-### Test Students (Pre-seeded)
+3. **Performance Optimization**
+   - Redis caching for frequently queried data
+   - Database query optimization
+   - Response compression
 
-| StudentNo | Name | Tuition | Balance | Status |
-|-----------|------|---------|---------|--------|
-| 20210001 | Ahmet Yılmaz | 50,000 | 50,000 | UNPAID |
-| 20210002 | Ayşe Demir | 50,000 | 25,000 | PARTIAL |
-| 20210003 | Mehmet Kaya | 50,000 | 0 | PAID |
-
-### Quick Test Commands
-
-1. **Login**:
-```bash
-curl -X POST http://localhost:5000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"Admin123!"}'
-```
-
-2. **Query Tuition (No Auth)**:
-```bash
-curl http://localhost:5000/api/v1/tuition/query/20210001
-```
-
-3. **Process Payment**:
-```bash
-curl -X POST http://localhost:5000/api/v1/banking/pay \
-  -H "Content-Type: application/json" \
-  -d '{"studentNo":"20210001","term":"2024-Fall","amount":10000}'
-```
-
-4. **Test Rate Limiting** (call 4 times, 4th should return 429):
-```bash
-for i in {1..4}; do
-  curl http://localhost:5000/api/v1/tuition/query/20210001
-  echo ""
-done
-```
+4. **Additional Features**
+   - Email notifications for payments
+   - Payment history endpoint
+   - Student registration API
+   - Receipt generation
 
 ---
 
-## 🚢 Deployment
-
-### Azure Deployment Steps
-
-1. **Create Azure SQL Database**
-2. **Update connection string** in appsettings.json
-3. **Change to UseSqlServer** in Program.cs
-4. **Deploy Main API** to Azure App Service
-5. **Deploy API Gateway** (update backend URL in appsettings.json)
-6. **Run migrations** against Azure SQL
-
-### Environment Variables (Azure App Service)
-
-```
-JwtSettings__SecretKey=<your-production-secret>
-ConnectionStrings__DefaultConnection=<azure-sql-connection-string>
-```
+## License
+This project is for educational purposes as part of SE 4458 course requirements.
 
 ---
 
-## 📋 Assumptions
-
-### Business Logic
-1. Term format: "YYYY-Season" (e.g., "2024-Fall")
-2. Currency: Turkish Lira (TRY)
-3. Student numbers: Alphanumeric, 6-10 characters
-4. JWT expiration: 24 hours
-5. Rate limit reset: Midnight UTC
-6. Minimum payment: 0.01 TRY
-7. CSV encoding: UTF-8
-8. Max CSV size: 10 MB
-9. Default page size: 20 records
-10. Max page size: 100 records
-
-### Technical
-1. SQLite for local dev, Azure SQL for production
-2. No refresh tokens (JWT only)
-3. Rate limiting per student/endpoint/date
-4. No actual banking integration
-5. Transaction IDs generated with GUID
-6. API versioning: v1
-7. CORS: Open (restrict in production)
-8. Timestamps: UTC
-9. HTTPS required in production
-10. Console logging (use Azure App Insights in prod)
-
----
-
-## 🐛 Issues & Solutions
-
-### Issue 1: macOS Doesn't Support SQL Server LocalDB
-**Solution**: Used SQLite for local development. Production will use Azure SQL. Entity Framework Core makes switching seamless.
-
-### Issue 2: Microsoft.OpenApi Namespace Issues
-**Solution**: Added explicit Microsoft.OpenApi package version 2.3.0 and simplified Swagger configuration.
-
-### Issue 3: Duplicate ErrorDetail Classes
-**Solution**: Renamed BatchUploadResponse's ErrorDetail to BatchErrorDetail to avoid namespace collision.
-
-### Issue 4: Rate Limiting Implementation
-**Solution**: Created custom middleware with database-backed rate limit tracking using composite index (student_no, endpoint, date).
-
-### Issue 5: API Gateway Logging Requirements
-**Solution**: Implemented custom middleware in Gateway that logs all request/response details including headers, status codes, latency, and body sizes.
-
-### Issue 6: Entity Framework Model Changes with DateTime.UtcNow
-**Solution**: Replaced `DateTime.UtcNow` in seed data with fixed DateTime values. Moved User seeding from DbContext to Program.cs to handle BCrypt's non-deterministic hashing.
-
-### Issue 7: Rate Limiting Requirements - Gateway vs API Level
-**Problem**: Initial implementation had rate limiting in the API project, but requirements specify "Rate limiting should be implemented in the API gateway."
-
-**Solution**:
-- Created separate `GatewayDbContext` with `RateLimit` model in APIGateway project
-- Moved `RateLimitingMiddleware` to Gateway and applied BEFORE YARP proxy
-- Rate limits now enforced at gateway level, preventing requests from reaching backend API
-- Database-backed for persistence and distributed deployment support
-
-### Issue 8: Comprehensive Gateway Logging Requirements
-**Problem**: Requirements specify detailed logging including authentication success/failure, mapping template failures, and specific request/response fields.
-
-**Solution**:
-- Created enhanced `RequestLoggingMiddleware` in Gateway
-- Logs all required fields: method, path, timestamp, IP, headers, request/response sizes
-- Infers detailed authentication status from response codes and header presence
-- Catches and logs proxy/mapping template failures (502, 503, 504 errors)
-- Logs response latency in milliseconds
-
-### Issue 9: Swagger Must Point to Gateway URL
-**Problem**: Swagger generating API URLs pointing directly to backend (port 5001), bypassing gateway.
-
-**Solution**: Added server configuration in Swagger setup:
-```csharp
-options.AddServer(new OpenApiServer
-{
-    Url = "http://localhost:5000",
-    Description = "API Gateway (Local Development)"
-});
-```
-Now all Swagger requests go through gateway (port 5000).
-
-### Issue 10: Supporting Both SQLite and Azure SQL
-**Problem**: Need SQLite for local development but Azure SQL for production.
-
-**Solution**: Environment-based database provider selection:
-```csharp
-if (builder.Environment.IsProduction() && connectionString!.Contains("database.windows.net"))
-{
-    options.UseSqlServer(connectionString);
-}
-else
-{
-    options.UseSqlite(connectionString);
-}
-```
-Added `appsettings.Production.json` for both projects with Azure SQL connection strings.
-
----
-
-## 📁 Project Structure
-
-```
-University-Tuition-Payment-System/
-├── src/
-│   ├── TuitionPaymentAPI/          # Main API
-│   │   ├── Controllers/
-│   │   ├── Data/
-│   │   ├── DTOs/
-│   │   ├── Middleware/
-│   │   ├── Models/
-│   │   ├── Services/
-│   │   └── Migrations/
-│   │
-│   └── APIGateway/                 # Gateway
-│       ├── Program.cs
-│       └── appsettings.json
-│
-├── README.md
-└── UniversityTuitionSystem.sln
-```
-
----
-
-## 🔑 Key Features Implemented
-
-### Core Requirements:
-- ✅ All 6 required API endpoints fully functional
-- ✅ JWT authentication with role-based authorization (Admin, BankingSystem)
-- ✅ **Rate limiting at API Gateway level** (3 requests/day, database-backed)
-- ✅ Paging support on unpaid tuition list endpoint
-- ✅ API versioning (`/api/v1/`)
-- ✅ Partial payment support with balance tracking
-- ✅ CSV batch upload with comprehensive validation
-- ✅ Swagger UI configured to use Gateway URLs
-
-### API Gateway Implementation:
-- ✅ YARP reverse proxy for request routing
-- ✅ **Rate limiting enforced BEFORE proxy** (gateway level)
-- ✅ **Comprehensive logging with ALL required fields**:
-  - ✅ Request: HTTP method, full path, timestamp, source IP, headers, size
-  - ✅ Response: Status code, latency (ms), size
-  - ✅ Authentication: Detailed success/failure status
-  - ✅ Rate limiting: Exceeded events logged
-  - ✅ Mapping template failures: Proxy errors logged
-- ✅ Single entry point for all API requests
-
-### Technical Excellence:
-- ✅ Separate databases for Gateway and API with migrations
-- ✅ Support for SQLite (dev) and Azure SQL (production)
-- ✅ Database seeding with test users and students
-- ✅ Error handling with standardized responses
-- ✅ Production-ready configuration files
-- ✅ Comprehensive testing documentation
-- ✅ Azure deployment guide included
-
----
-
-## 📚 References
-
-- [ASP.NET Core Documentation](https://docs.microsoft.com/en-us/aspnet/core/)
-- [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/)
-- [YARP Documentation](https://microsoft.github.io/reverse-proxy/)
-- [JWT.IO](https://jwt.io/)
-- [Swagger/OpenAPI](https://swagger.io/)
-
----
-
-## 🎓 Academic Information
-
-**Course**: SE 4458 - Büyük Ölçekli Sistemler İçin Sistem Mimarisi
-
-**Project**: Midterm Project
-
-**Semester**: Fall 2025
-
-**Student**: Ali Haktan SIĞIN (@alihaktan35)
-
----
-
-**Built with ASP.NET Core 9.0 | Documented with Swagger UI | Ready for Azure**
+## Contact
+For questions or issues, please contact through the course platform or create an issue in the repository.
