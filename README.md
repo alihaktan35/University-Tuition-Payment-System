@@ -13,7 +13,7 @@
 ## 🔗 Live Deployment & Links
 
 - **🌐 Live API Gateway (Azure)**: https://ahs-tuition-gateway.azurewebsites.net/swagger/index.html
-- **📹 Video Presentation**: [[YouTube - Project demonstration video]](https://youtu.be/Wz-aN1V8Roo)
+- **📹 Video Presentation**: [YouTube - Project demonstration video](https://youtu.be/Wz-aN1V8Roo)
 - **💻 GitHub Repository**: https://github.com/alihaktan35/University-Tuition-Payment-System
 
 ---
