@@ -13,7 +13,7 @@
 ## 🔗 Live Deployment & Links
 
 - **🌐 Live API Gateway (Azure)**: https://ahs-tuition-gateway.azurewebsites.net/swagger/index.html
-- **📹 Video Presentation**: [Will be added - Project demonstration video]
+- **📹 Video Presentation**: [YouTube - Project demonstration video](https://youtu.be/Wz-aN1V8Roo)
 - **💻 GitHub Repository**: https://github.com/alihaktan35/University-Tuition-Payment-System
 
 ---
@@ -408,7 +408,7 @@ Upload a CSV file with headers: `studentNo,term,amount`
 - ✅ Azure App Service deployment (2 Web Apps)
 - ✅ README with design, assumptions, and issues
 - ✅ GitHub repository
-- ⏳ Video presentation (to be added)
+- ✅ Video presentation
 
 ---
 
