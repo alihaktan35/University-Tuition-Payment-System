@@ -145,9 +145,9 @@ All services communicate over HTTPS in production. The API Gateway serves as the
 │ created_at      │       │
 └─────────────────┘       │
                           │
-         ┌────────────────┴─────┐
-         │       TUITION         │
-         ├──────────────────────┤
+         ┌────────────────┴───-──┐
+         │        TUITION        │
+         ├─────────────────────-─┤
          │ tuition_id (PK)       │
          │ student_id (FK)       │──────┐
          │ term                  │      │
@@ -250,30 +250,6 @@ Additional Tables:
 6. **Timestamps**: All in UTC
 7. **HTTPS**: Required in production environment
 8. **CORS**: Configured for cross-origin requests
-
----
-
-## 🐛 Issues Encountered & Solutions
-
-### 1. macOS Development Environment
-**Problem**: SQL Server LocalDB not available on macOS
-**Solution**: Used SQLite for local development with seamless Azure SQL migration for production
-
-### 2. Rate Limiting Location
-**Problem**: Requirements specify rate limiting at API Gateway level
-**Solution**: Created separate `GatewayDbContext` and moved `RateLimitingMiddleware` to Gateway, applied BEFORE YARP proxy
-
-### 3. Comprehensive Logging Requirements
-**Problem**: Need to log authentication status, mapping failures, and detailed request/response data
-**Solution**: Implemented custom `RequestLoggingMiddleware` in Gateway that captures all required fields and infers authentication status from response codes
-
-### 4. Swagger Gateway Integration
-**Problem**: Swagger generating URLs pointing to backend API instead of Gateway
-**Solution**: Configured Swagger with explicit server URL pointing to API Gateway
-
-### 5. Dual Database Support
-**Problem**: Need different databases for development and production
-**Solution**: Environment-based provider selection - SQLite for Development, SQL Server for Production
 
 ---
 
@@ -406,8 +382,6 @@ Upload a CSV file with headers: `studentNo,term,amount`
 ## 🎓 Academic Information
 
 **Course**: SE 4458 - Software Architecture & Design of Modern Large Scale Systems
-
-**Instructor**: [Your Instructor Name]
 
 **Project Type**: Midterm Project - Group 2 (University Tuition Payment System)
 
