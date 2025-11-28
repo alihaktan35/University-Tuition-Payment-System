@@ -317,8 +317,6 @@ University-Tuition-Payment-System/
 │       └── Migrations/
 │
 ├── README.md
-├── AZURE_DEPLOYMENT_GUIDE.md
-├── TEST_ALL_ENDPOINTS.md
 └── UniversityTuitionSystem.sln
 ```
 
@@ -371,11 +369,10 @@ Upload a CSV file with headers: `studentNo,term,amount`
 
 ---
 
-## 📚 Additional Documentation
+## 📚 Source Code
 
-- **Deployment Guide**: [AZURE_DEPLOYMENT_GUIDE.md](AZURE_DEPLOYMENT_GUIDE.md)
-- **Testing Guide**: [TEST_ALL_ENDPOINTS.md](TEST_ALL_ENDPOINTS.md)
-- **Source Code**: GitHub repository linked above
+- **GitHub Repository**: https://github.com/alihaktan35/University-Tuition-Payment-System
+- **Live Deployment**: https://ahs-tuition-gateway.azurewebsites.net/swagger/index.html
 
 ---
 
