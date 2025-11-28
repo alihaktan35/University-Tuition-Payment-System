@@ -408,7 +408,7 @@ Upload a CSV file with headers: `studentNo,term,amount`
 - ✅ Azure App Service deployment (2 Web Apps)
 - ✅ README with design, assumptions, and issues
 - ✅ GitHub repository
-- ⏳ Video presentation (to be added)
+- ✅ Video presentation
 
 ---
 
