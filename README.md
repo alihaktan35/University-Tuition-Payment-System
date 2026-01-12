@@ -1,5 +1,7 @@
 # University Tuition Payment System - SE 4458 Midterm Project
 
+![Project Banner](https://i.hizliresim.com/icmp7yt.png)
+
 **Course**: SE 4458 - Software Architecture & Design of Modern Large Scale Systems
 
 **Student**: Ali Haktan SIĞIN
